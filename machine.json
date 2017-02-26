@@ -1,0 +1,27 @@
+{
+  "variables": {
+    "credentials" : "{{env `CREDENTIALS`}}",
+    "do_api_token": "{{env `TOKEN`}}"
+  },
+  "builders": [{
+    "type":         "digitalocean",
+    "api_token":    "{{user `do_api_token`}}",
+    "ssh_username": "root",
+    "image":        "ubuntu-16-04-x64",
+    "region":       "ams3",
+    "size":         "512mb",
+    "snapshot_name":"softvpn"
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D",
+      "apt-add-repository 'deb https://apt.dockerproject.org/repo ubuntu-xenial main'",
+      "apt-get update",
+      "apt-cache policy docker-engine",
+      "apt-get install -y docker-engine",
+      "systemctl status docker",
+      "docker run -d --restart unless-stopped --cap-add NET_ADMIN -e USERS={{user `credentials`}} -p 500:500/udp -p 4500:4500/udp -p 1701:1701/tcp -p 1194:1194/udp -p 5555:5555/tcp siomiz/softethervpn"
+    ]
+  }]
+}
